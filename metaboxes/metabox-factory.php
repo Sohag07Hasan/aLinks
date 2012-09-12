@@ -1,0 +1,2 @@
+<input <?php checked($factory, 'default'); ?> type="radio" name="<?php echo self::metakey_factory; ?>" value="default" /> Default <br/>
+<input <?php checked($factory, 'amazon'); ?> type="radio" name="<?php echo self::metakey_factory; ?>" value="amazon" > Amazon

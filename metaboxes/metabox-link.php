@@ -1,0 +1,2 @@
+<input type="text" name="<?php echo self::metakey_link; ?>" size="90" value="<?php echo $link; ?>" />
+<code> For Default Factory, use the ful url (http://something.com) and for Amazon keep the field empty </code>

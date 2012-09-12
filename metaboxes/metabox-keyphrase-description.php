@@ -1,0 +1,2 @@
+<input type="text" name="<?php echo self::post_content; ?>" value="<?php echo $post->post_content; ?>" size="90" />
+<code>Please use a description and it will be shown while hovering on the keyphrase</code>
