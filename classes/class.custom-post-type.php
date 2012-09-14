@@ -30,6 +30,7 @@ class aLinks_CustomPostTypes{
 		add_action('add_meta_boxes',array(get_class(), 'add_metaboxes'));
 		add_action('save_post', array(get_class(), 'saveMetaBoxesData'), 100, 2);
 		add_filter('wp_insert_post_data', array(get_class(), 'alter_postdata_with_keyphrase'), 10, 2);
+		//manage_posts_columns , manage_posts_custom_column
 
 	//	add_action('admin_enqueue_scripts', array(get_class(), 'js_add'));
 

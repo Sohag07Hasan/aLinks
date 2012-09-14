@@ -15,4 +15,9 @@ define("aLinks_DIR", dirname(__FILE__));
 include aLinks_DIR . '/classes/class.custom-post-type.php';
 aLinks_CustomPostTypes::init();
 
+include aLinks_DIR . '/classes/class.keyphrase-parse.php';
+aLinks_keyphraseParser::init();
+
+include aLinks_DIR . '/classes/class.link-builder.php';
+
 ?>
