@@ -20,4 +20,3 @@ aLinks_keyphraseParser::init();
 
 include aLinks_DIR . '/classes/class.link-builder.php';
 
-?>

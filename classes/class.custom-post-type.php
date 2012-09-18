@@ -16,7 +16,13 @@ class aLinks_CustomPostTypes{
 	const post_title = "aLink_key_phrase_name";
 	const post_content = "aLink_key_phrase_description";
 	const metakey_link = "aLink_link";
-	const metakey_factory = "aLink_factory";
+	const metakey_exchange = "aLink_keyPhrase_exchange";
+	const metakey_option = "aLink_keyPhrase_option";
+	const metakey_randomness = "aLink_keyPhrase_randomness";
+	
+	
+	//globla option keys
+	const global_options_key = "aLinks_global_options";
 
 	
 
@@ -30,6 +36,7 @@ class aLinks_CustomPostTypes{
 		add_action('add_meta_boxes',array(get_class(), 'add_metaboxes'));
 		add_action('save_post', array(get_class(), 'saveMetaBoxesData'), 100, 2);
 		add_filter('wp_insert_post_data', array(get_class(), 'alter_postdata_with_keyphrase'), 10, 2);
+		add_action('admin_menu', array(get_class(), 'submenupage'));
 		//manage_posts_columns , manage_posts_custom_column
 
 	//	add_action('admin_enqueue_scripts', array(get_class(), 'js_add'));
@@ -95,7 +102,8 @@ class aLinks_CustomPostTypes{
 		add_meta_box('aLinks_key_phrase', __('Key Phrase'), array(get_class(), 'metabox_keyPhrase'), self::posttype, 'normal', 'high');
 		add_meta_box('aLinks_link', __('Assocate Link'), array(get_class(), 'metabox_link'), self::posttype, 'normal', 'high');
 		add_meta_box('aLinks_key_phrase_description', __('Description'), array(get_class(), 'metabox_keyPhrase_description'), self::posttype, 'normal', 'high');
-		add_meta_box('aLinks_factory', __('Factory'), array(get_class(), 'metabox_factory'), self::posttype, 'side', 'high');
+		add_meta_box('aLinks_keyphrase_exchange', __('Replacing Keyphrase'), array(get_class(), 'metabox_keypPhrase_exchange'), self::posttype, 'normal', 'high');
+		add_meta_box('aLinks_keyphrase_options', __('KeyPhrase Options'), array(get_class(), 'metabox_keypPhrase_options'), self::posttype, 'side', 'high');
 	}
 
 	//metabox content
@@ -115,38 +123,42 @@ class aLinks_CustomPostTypes{
 		include aLinks_DIR . '/metaboxes/metabox-link.php';
 	}
 	
-	static function metabox_factory(){
+	static function metabox_keypPhrase_exchange(){
 		global $post;
-		$factory = self::get_factory($post->ID);
-		include aLinks_DIR . '/metaboxes/metabox-factory.php';
+		$exchange = self::get_exchange_word($post->ID);	
+		include aLinks_DIR . '/metaboxes/metabox-keyphrase-exchange.php';
+	}
+	
+	static function metabox_keypPhrase_options(){
+		global $post;
+		$options = self::get_keyPhrase_options($post->ID);
+		//var_dump($options);
+		include aLinks_DIR . '/metaboxes/metabox-keyphrase-options.php';
 	}
 
 	//save the metabox data
 	static function saveMetaBoxesData($post_ID, $post){
 		if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE ) return;
-		if($post->post_type == self::posttype) :
-			update_post_meta($post_ID, self::metakey_link, trim($_POST[self::metakey_link]));
-			update_post_meta($post_ID, self::metakey_factory, trim($_POST[self::metakey_factory]));
+		if($post->post_type == self::posttype && isset($_POST[self::post_title])) :
+			$similar_post_ids = self::get_similar_post_ids($post->post_title);			
+			foreach($similar_post_ids as $pid){
+				update_post_meta($pid, self::metakey_option, empty($_POST[self::metakey_option]) ? "3" : $_POST[self::metakey_option]);
+				if($_POST[self::metakey_option] == 4){
+					update_post_meta($pid, self::metakey_randomness, $_POST[self::metakey_randomness]);
+				}
+				if($pid == $post_ID){
+					update_post_meta($post_ID, self::metakey_link, trim($_POST[self::metakey_link]));
+					update_post_meta($post_ID, self::metakey_exchange, trim($_POST[self::metakey_exchange]));
+				}			
+			}					
+						
 		endif;
 	}
-
 	
-	//update the count
-	static function count_update($post_id){
-		//global $post;
-		//var_dump($post);
-		if(self::$counted > 0 ) return;		
-		$count = get_post_meta($post_id, 'total_viewed', true);
-		if($count){
-			$count ++;
-		}
-		else{
-			$count = 1;
-		}
-
-		update_post_meta($post_id, 'total_viewed', $count);
-
-		self::$counted ++ ;
+	
+	//get the exchange keywords if any
+	static function get_exchange_word($post_id){
+		return get_post_meta($post_id, self::metakey_exchange, true);
 	}
 	
 	
@@ -154,6 +166,7 @@ class aLinks_CustomPostTypes{
 	 * alerts post data with keyphrase data
 	 * */
 	static function alter_postdata_with_keyphrase($data, $tags){
+			
 		if(isset($_POST[self::post_title])){
 			$data['post_title'] = trim($_POST[self::post_title]);
 		}
@@ -171,6 +184,7 @@ class aLinks_CustomPostTypes{
 		return get_post_meta($post_id, self::metakey_link, true);
 	}
 	
+	
 	/*
 	 * return the factory
 	 * */
@@ -178,4 +192,53 @@ class aLinks_CustomPostTypes{
 		return get_post_meta($post_id, self::metakey_factory, true);
 	}
 	
+	
+	/*
+	 * submenupage
+	 * */
+	static function submenupage(){
+		add_submenu_page( 'edit.php?post_type=' . self::posttype, __('aLinks Global Settings'), __('Options'), 'manage_options', 'aLinks_optionsPage', array(get_class(), 'submenupage_content'));
+	}
+	
+	static function submenupage_content(){
+		if($_POST['aLinks-options-save'] == "Y"):
+			$new_options = array(
+				'max_link_p_post' => empty($_POST['aLinks-maximumLinksperpost']) ? 1 : $_POST['aLinks-maximumLinksperpost'],
+				'randomize' => $_POST['aLinks-radomizeLinks'],
+				'raw_url_position' => $_POST['aLinks-rowurl-position']
+			);
+			update_option(self::global_options_key, $new_options);
+		endif;
+		
+		$options = self::get_global_options();
+		//var_dump($options);
+		include aLinks_DIR . '/includes/submenupage.php';
+	}
+	
+	
+	//return the global options
+	static function get_global_options(){
+		return get_option(self::global_options_key);		
+	}
+	
+	
+	/*
+	 * returns the similar ids
+	 * */
+	static function get_similar_post_ids($title){		
+		global $wpdb;		
+		$sql = "SELECT ID from $wpdb->posts WHERE post_title = '$title'";
+		return $wpdb->get_col($sql);		
+	}
+	
+	
+	/*
+	 * returns the posts options
+	 * */
+	static function get_keyPhrase_options($post_ID){		
+	   return array(
+			self::metakey_option => get_post_meta($post_ID, self::metakey_option, true),
+			self::metakey_randomness => get_post_meta($post_ID, self::metakey_randomness, true)
+		);		
+	}
 }
