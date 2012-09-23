@@ -39,6 +39,8 @@ class aLinks_CustomPostTypes{
 		add_action('admin_menu', array(get_class(), 'submenupage'));
 		//manage_posts_columns , manage_posts_custom_column
 
+		add_filter('manage_' . self::posttype . '_posts_columns', array(get_class(), 'manage_posts_columns'));
+		
 	//	add_action('admin_enqueue_scripts', array(get_class(), 'js_add'));
 
 		//post visit counts
@@ -198,6 +200,7 @@ class aLinks_CustomPostTypes{
 	 * */
 	static function submenupage(){
 		add_submenu_page( 'edit.php?post_type=' . self::posttype, __('aLinks Global Settings'), __('Options'), 'manage_options', 'aLinks_optionsPage', array(get_class(), 'submenupage_content'));
+		add_submenu_page( 'edit.php?post_type=' . self::posttype, __('aLinks Import Export'), __('Import Export'), 'manage_options', 'aLinks_import_export', array(get_class(), 'submenupage_import_export'));
 	}
 	
 	static function submenupage_content(){
@@ -213,6 +216,14 @@ class aLinks_CustomPostTypes{
 		$options = self::get_global_options();
 		//var_dump($options);
 		include aLinks_DIR . '/includes/submenupage.php';
+	}
+	
+	
+	/*
+	 * import export
+	 * */
+	static function submenupage_import_export(){
+		include aLinks_DIR . '/includes/submenupage-import-export.php';
 	}
 	
 	
@@ -240,5 +251,19 @@ class aLinks_CustomPostTypes{
 			self::metakey_option => get_post_meta($post_ID, self::metakey_option, true),
 			self::metakey_randomness => get_post_meta($post_ID, self::metakey_randomness, true)
 		);		
+	}
+	
+	
+	/*
+	 * creates a column in the aLinks post table
+	 * */
+	static function manage_posts_columns($columns){
+		$new_columns = $columns;
+		unset($new_columns['date']);		
+		$new_columns['title'] = "KeyPhrase";
+		$new_columns['link'] = "Link";
+				
+		
+		return $new_columns;
 	}
 }

@@ -36,12 +36,13 @@ class aLinks_keyphraseParser{
 			if($max_links == -1){
 				$is_unlimited = true;
 			}
+			/*
 			else{
 				if(!empty($randomize)){
 					$is_random = true;
 				}
 			}
-			
+			*/
 			foreach($keyPhrases as $key => $Phrases){
 				$link_replaced = 0;
 				
@@ -49,6 +50,7 @@ class aLinks_keyphraseParser{
 				$expression = self::get_regexExpression();								
 				$phrase_found = preg_match_all($expression, $content, $matches);
 				
+				/*
 				if($is_random){
 					$total_links = rand(1, $max_links);
 				}elseif($is_unlimited){
@@ -57,6 +59,9 @@ class aLinks_keyphraseParser{
 				else{
 					$total_links = $max_links;
 				}
+				*/
+				
+				$total_links = ($is_unlimited) ? 100 : $max_links;
 				
 				if($phrase_found){
 					self::set_options($Phrases[0]);					
