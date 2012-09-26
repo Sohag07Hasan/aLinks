@@ -2,10 +2,14 @@
 	<?php screen_icon('options-general'); ?>
 	<h2>Import and Export</h2>
 	
-	<form action="" method="post">
+	<?php
+		self::print_log();
+	 ?>
+	
+	<form action="" method="post" enctype="multipart/form-data">
 		<table class="form-table">
 			<tr>
-				<td> Please Upload a ?? file  </td>
+				<td> Please Upload a XML file  </td>
 			</tr>
 			<tr>
 				<th> <input type="file" name="alinks-FileUpload" > </th>

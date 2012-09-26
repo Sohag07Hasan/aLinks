@@ -16,11 +16,19 @@
 				<td> <input type="text" name="aLinks-maximumLinksperpost" id="aLinks-maximumLinksperpost" value="<?php echo $options['max_link_p_post'];?>" /> </td>
 				<td colspan="2"> <code> -1 is for the unlimited link</code> </td>
 			</tr>
+			
+			<tr>
+				<th> <label for="aLinks-maximumLinks"> Maximum Links for a keyPhrase throughout the site</label> </th>
+				<td> <input type="text" name="aLinks-maximumLinks" id="aLinks-maximumLinks" value="<?php echo $options['max_links'];?>" /> </td>
+				<td colspan="2"> <code> -1 is for the unlimited link</code> </td>
+			</tr>
+			
 			<tr>
 				<th> <label for="aLinks-radomizeLinks"> Want to randomize the links?</label> </th>
 				<td> <input <?php checked('Y', $options['randomize']); ?> type="checkbox" name="aLinks-radomizeLinks" value="Y"> </td>
 				<td colspan="2"> <code> it will take a random number between 1 to the "maximum links per post per keyPhrase" </code> </td>
 			</tr>
+			
 			<tr>
 				<th> <lable for="aLinks-rowurl-position"></lable> Position or the raw url </th>
 				<td> 

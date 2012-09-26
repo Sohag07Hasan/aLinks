@@ -21,6 +21,10 @@ class aLinks_CustomPostTypes{
 	const metakey_randomness = "aLink_keyPhrase_randomness";
 	
 	
+	// xml parsing log;
+	static $log = array();
+	
+	
 	//globla option keys
 	const global_options_key = "aLinks_global_options";
 
@@ -144,7 +148,7 @@ class aLinks_CustomPostTypes{
 		if($post->post_type == self::posttype && isset($_POST[self::post_title])) :
 			$similar_post_ids = self::get_similar_post_ids($post->post_title);			
 			foreach($similar_post_ids as $pid){
-				update_post_meta($pid, self::metakey_option, empty($_POST[self::metakey_option]) ? "3" : $_POST[self::metakey_option]);
+				update_post_meta($pid, self::metakey_option, empty($_POST[self::metakey_option]) ? "1" : $_POST[self::metakey_option]);
 				if($_POST[self::metakey_option] == 4){
 					update_post_meta($pid, self::metakey_randomness, $_POST[self::metakey_randomness]);
 				}
@@ -208,7 +212,8 @@ class aLinks_CustomPostTypes{
 			$new_options = array(
 				'max_link_p_post' => empty($_POST['aLinks-maximumLinksperpost']) ? 1 : $_POST['aLinks-maximumLinksperpost'],
 				'randomize' => $_POST['aLinks-radomizeLinks'],
-				'raw_url_position' => $_POST['aLinks-rowurl-position']
+				'raw_url_position' => $_POST['aLinks-rowurl-position'],
+				'max_links' => trim($_POST['aLinks-maximumLinks'])
 			);
 			update_option(self::global_options_key, $new_options);
 		endif;
@@ -223,6 +228,11 @@ class aLinks_CustomPostTypes{
 	 * import export
 	 * */
 	static function submenupage_import_export(){
+		
+		if(!empty($_FILES['alinks-FileUpload']['tmp_name'])){
+			self::parse_xml_file();
+		}		
+				
 		include aLinks_DIR . '/includes/submenupage-import-export.php';
 	}
 	
@@ -265,5 +275,93 @@ class aLinks_CustomPostTypes{
 				
 		
 		return $new_columns;
+	}
+	
+	
+	/*
+	 * parse xml file for alinks 
+	 * */
+	static function parse_xml_file(){
+		$file = $_FILES['alinks-FileUpload']['tmp_name'];
+		
+		$xml = @ simplexml_load_file($file);
+				
+		if(!$xml){
+			self::$log['error'][] = __("XML format is not valid. Please see the sample in plugins directory");
+			return;
+		}
+		
+		$keyphrases = $xml->Keyphrases->Keyphrase;
+		
+		if(empty($keyphrases)){
+			self::$log['error'][] = __("XML format is not valid. Please see the sample in plugins directory");
+			return;
+		}
+		
+		$parsed = 0;
+		$skipped = 0;
+		
+		foreach($keyphrases as $key => $keyphrase){
+			$single_keyphrase = array();
+			
+			$single_keyphrase['url'] = (string) $keyphrase->Option;				
+			foreach($keyphrase->attributes() as $k => $v){
+				$single_keyphrase[$k] = (string) $v;
+			}
+
+			if(empty($single_keyphrase['phrase']) || $single_keyphrase['url']){
+				$skipped ++ ;
+				continue;
+			}
+			
+			$post_id = self::create_post();
+			if($post_id){
+				$parsed ++ ;
+			}
+		}
+		
+		self::$log['updated'][] = __("total number of pharsed : $parsed and <br/> total number of skipped : $skipped");
+		
+		
+	}
+	
+	//creates post
+	static function create_post($data){
+		$post_data = array(
+			'post_title' => $data['phrase'],
+			'post_content' => $data['description'],
+			'post_type' => slef::posttype,
+		);
+		
+		var_dump($data);
+		
+		$pid = wp_insert_post($post_data);
+		
+		var_dump($pid);
+		die();
+		
+		update_post_meta($pid, self::metakey_link, $data['url']);
+		update_post_meta($pid, self::metakey_option, "1");
+				
+		return $pid;
+	}
+	
+	//print log message
+	static function print_log(){
+		if(!empty(self::$log['updated'])){
+			echo "<div class='updated'>";
+			foreach(self::$log['updated'] as $msg){
+				echo "<p>" . $msg . "</p>";
+			}
+			echo "</div>";
+		}
+		
+	if(!empty(self::$log['error'])){
+			echo "<div class='error'>";
+			foreach(self::$log['error'] as $msg){
+				echo "<p>" . $msg . "</p>";
+			}
+			echo "</div>";
+		}
 	}
 }
