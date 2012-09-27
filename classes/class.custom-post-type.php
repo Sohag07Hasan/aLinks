@@ -43,7 +43,9 @@ class aLinks_CustomPostTypes{
 		add_action('admin_menu', array(get_class(), 'submenupage'));
 		//manage_posts_columns , manage_posts_custom_column
 
-		add_filter('manage_' . self::posttype . '_posts_columns', array(get_class(), 'manage_posts_columns'));
+		add_filter('manage_' . self::posttype . '_posts_columns', array(get_class(), 'manage_posts_columns'));		
+		
+		add_action('manage_' . self::posttype . '_posts_custom_column', array(get_class(), 'manage_custom_post_rows'), 10, 2);
 		
 	//	add_action('admin_enqueue_scripts', array(get_class(), 'js_add'));
 
@@ -272,9 +274,23 @@ class aLinks_CustomPostTypes{
 		unset($new_columns['date']);		
 		$new_columns['title'] = "KeyPhrase";
 		$new_columns['link'] = "Link";
+		$new_columns['des'] = "Description";
 				
 		
 		return $new_columns;
+	}
+	
+	static function manage_custom_post_rows($column_name, $post_ID){
+		
+		switch($column_name){
+			case "link" :
+				echo get_post_meta($post_ID, self::metakey_link, true);
+				break;
+			case "des" :
+				echo self::get_keyphrase_description($post_ID);
+				break;
+			
+		}
 	}
 	
 	
@@ -304,17 +320,19 @@ class aLinks_CustomPostTypes{
 		foreach($keyphrases as $key => $keyphrase){
 			$single_keyphrase = array();
 			
-			$single_keyphrase['url'] = (string) $keyphrase->Option;				
+			$single_keyphrase['url'] = (string) $keyphrase->Option;	
+						
 			foreach($keyphrase->attributes() as $k => $v){
 				$single_keyphrase[$k] = (string) $v;
 			}
-
-			if(empty($single_keyphrase['phrase']) || $single_keyphrase['url']){
+			
+			
+			if(empty($single_keyphrase['phrase']) || empty($single_keyphrase['url'])){
 				$skipped ++ ;
 				continue;
 			}
 			
-			$post_id = self::create_post();
+			$post_id = self::create_post($single_keyphrase);
 			if($post_id){
 				$parsed ++ ;
 			}
@@ -330,15 +348,13 @@ class aLinks_CustomPostTypes{
 		$post_data = array(
 			'post_title' => $data['phrase'],
 			'post_content' => $data['description'],
-			'post_type' => slef::posttype,
+			'post_type' => self::posttype,
+			'post_status' => 'publish'
 		);
-		
-		var_dump($data);
+			
 		
 		$pid = wp_insert_post($post_data);
 		
-		var_dump($pid);
-		die();
 		
 		update_post_meta($pid, self::metakey_link, $data['url']);
 		update_post_meta($pid, self::metakey_option, "1");
@@ -363,5 +379,14 @@ class aLinks_CustomPostTypes{
 			}
 			echo "</div>";
 		}
+	}
+	
+	
+	/*
+	 * return the keyphrase descripion
+	 * */
+	static function get_keyphrase_description($post_ID){
+		global $wpdb;
+		return $wpdb->get_var("SELECT post_content FROM $wpdb->posts WHERE ID = '$post_ID'");
 	}
 }
