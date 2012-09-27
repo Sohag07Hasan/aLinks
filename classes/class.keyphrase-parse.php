@@ -16,6 +16,7 @@ class aLinks_keyphraseParser{
 	static $keyPhrase;
 	static $key;
 	static $options;
+	static $total_parsed = 0;
 	
 	static function init(){
 		add_filter('the_content', array(get_class(), 'parse_keyPhrase'));
@@ -28,8 +29,11 @@ class aLinks_keyphraseParser{
 		if(!empty($keyPhrases)) :
 			
 			$global_settings = self::get_global_options();
+			
 			$max_links = $global_settings['max_link_p_post'];
+			$max_links_sitewise = $global_settings['max_links'];
 			$randomize = $global_settings['randomize'];
+			
 			if(!empty($randomize)){
 				$keyPhrases = self::shuffle_keyphrases($keyPhrases);
 			}
@@ -37,46 +41,37 @@ class aLinks_keyphraseParser{
 			$is_unlimited = false;
 			$is_random = false;
 			
+			
 			if($max_links == -1){
 				$is_unlimited = true;
 			}
-			/*
-			else{
-				if(!empty($randomize)){
-					$is_random = true;
-				}
+			
+			if($max_links_sitewise == -1){
+				$max_links_sitewise = 200;
 			}
-			*/
+			
+						
 			foreach($keyPhrases as $key => $Phrases){
 				$link_replaced = 0;
 				
 				self::$key = $key;				
 				$expression = self::get_regexExpression();								
 				$phrase_found = preg_match_all($expression, $content, $matches);
-				
-				/*
-				if($is_random){
-					$total_links = rand(1, $max_links);
-				}elseif($is_unlimited){
-					$total_links = 100;
-				}
-				else{
-					$total_links = $max_links;
-				}
-				*/
+							
 				
 				$total_links = ($is_unlimited) ? 100 : $max_links;
 				
 				if($phrase_found){
 					self::set_options($Phrases[0]);					
 					foreach($Phrases as $pno => $phrase){
-						if($link_replaced == $total_links) break;
-												
-						self::$keyPhrase = $phrase;
-						$link = self::get_associate_link();
-						$content = preg_replace($expression, $link, $content, 1);
-						$link_replaced ++;
-						//$content = self::get_edited_content($content, $expression, $link);
+						if(self::$total_parsed < $max_links_sitewise) :
+							if($link_replaced == $total_links) break;												
+							self::$keyPhrase = $phrase;
+							$link = self::get_associate_link();
+							$content = preg_replace($expression, $link, $content, 1);
+							$link_replaced ++;	
+							self::$total_parsed ++;	
+						endif;				
 					}
 				}				
 				
