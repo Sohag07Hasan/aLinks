@@ -26,10 +26,14 @@ class aLinks_keyphraseParser{
 		$keyPhrases = self::get_keyPhrases();					
 		
 		if(!empty($keyPhrases)) :
-			$keyPhrases = self::shuffle_keyphrases($keyPhrases);
+			
 			$global_settings = self::get_global_options();
 			$max_links = $global_settings['max_link_p_post'];
 			$randomize = $global_settings['randomize'];
+			if(!empty($randomize)){
+				$keyPhrases = self::shuffle_keyphrases($keyPhrases);
+			}
+			
 			$is_unlimited = false;
 			$is_random = false;
 			

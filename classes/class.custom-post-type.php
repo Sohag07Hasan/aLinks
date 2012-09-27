@@ -207,6 +207,7 @@ class aLinks_CustomPostTypes{
 	static function submenupage(){
 		add_submenu_page( 'edit.php?post_type=' . self::posttype, __('aLinks Global Settings'), __('Options'), 'manage_options', 'aLinks_optionsPage', array(get_class(), 'submenupage_content'));
 		add_submenu_page( 'edit.php?post_type=' . self::posttype, __('aLinks Import Export'), __('Import Export'), 'manage_options', 'aLinks_import_export', array(get_class(), 'submenupage_import_export'));
+		add_submenu_page( 'edit.php?post_type=' . self::posttype, __('aLinks Bulk Operation'), __('Bulk Operation'), 'manage_options', 'aLinks_bulk_delete', array(get_class(), 'submenupage_bulk_delete'));
 	}
 	
 	static function submenupage_content(){
@@ -237,6 +238,77 @@ class aLinks_CustomPostTypes{
 				
 		include aLinks_DIR . '/includes/submenupage-import-export.php';
 	}
+	
+	//bulk delete option
+	static function submenupage_bulk_delete(){
+		if($_POST['alinks-bulk-operation-submitted'] == "Y"){
+			switch($_POST['alinks-bulk-operation']){
+				case 1 :
+					self::make_posts_drafts();
+					$msg = "All the keyphrases are drafts";
+					break;
+				case 2 :
+					self::make_posts_trash();
+					$msg = "All the keyphrases are trash";
+					break;
+				case 3 :
+					self::make_posts_publish();
+					$msg = "All the keyphrases are made publish";
+					break;
+				case 4 :
+					self::make_posts_delete();
+					$msg = "All the keyphrase are deleted";
+					break;
+				default:
+					$msg = "No operation is selected";
+					break;
+					
+			}
+		}
+		include aLinks_DIR . '/includes/submenupage-bulk-delete.php';
+	}
+	
+	//bulk operation to make posts drafts
+	static function make_posts_drafts(){
+		global $wpdb;
+		$posttype = self::posttype;
+		$sql = "UPDATE $wpdb->posts SET post_status = 'draft' WHERE post_type = '$posttype'";
+		return $wpdb->query($sql);
+	}
+	
+	//bulk operation to make posts trash
+	static function make_posts_trash(){
+		global $wpdb;
+		$posttype = self::posttype;
+		$sql = "UPDATE $wpdb->posts SET post_status = 'trash' WHERE post_type = '$posttype'";
+		return $wpdb->query($sql);
+	}
+	
+	//bulk operation to make posts publish
+	static function make_posts_publish(){
+		global $wpdb;
+		$posttype = self::posttype;
+		$sql = "UPDATE $wpdb->posts SET post_status = 'publish' WHERE post_type = '$posttype'";
+		return $wpdb->query($sql);
+	}
+	
+	//bulk operation to make posts delete
+	static function make_posts_delete(){
+		global $wpdb;
+		$posttype = self::posttype;
+		$meta_key_1 = self::metakey_exchange;
+		$meta_key_2 = self::metakey_link;
+		$meta_key_3 = self::metakey_option;
+		$meta_key_4 = self::metakey_randomness;
+		
+		$sql_1 = "DELETE FROM $wpdb->posts WHERE post_type = '$posttype'";
+		$sql_2 = "DELETE FROM $wpdb->postmeta WHERE meta_key = '$meta_key_1' OR meta_key = '$meta_key_2' OR meta_key = '$meta_key_3' OR meta_key = '$meta_key_4'";
+		
+		$wpdb->query($sql_1);
+		$wpdb->query($sql_2);
+		return;
+	}
+	
 	
 	
 	//return the global options
@@ -284,7 +356,8 @@ class aLinks_CustomPostTypes{
 		
 		switch($column_name){
 			case "link" :
-				echo get_post_meta($post_ID, self::metakey_link, true);
+				$link = get_post_meta($post_ID, self::metakey_link, true);
+				echo "<a href='$link' target='_blank'>$link</a>";
 				break;
 			case "des" :
 				echo self::get_keyphrase_description($post_ID);

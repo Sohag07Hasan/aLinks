@@ -26,7 +26,7 @@
 			<tr>
 				<th> <label for="aLinks-radomizeLinks"> Want to randomize the links?</label> </th>
 				<td> <input <?php checked('Y', $options['randomize']); ?> type="checkbox" name="aLinks-radomizeLinks" value="Y"> </td>
-				<td colspan="2"> <code> it will take a random number between 1 to the "maximum links per post per keyPhrase" </code> </td>
+				<td colspan="2"> <code> it will randomize the same matched keyphrases around a single post" </code> </td>
 			</tr>
 			
 			<tr>
