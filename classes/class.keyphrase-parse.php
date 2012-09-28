@@ -7,7 +7,7 @@ class aLinks_keyphraseParser{
 	
 	//const REGEXP_PARSE = '#(?!((<h.*?)(<.*?)|(<a.*?)))\b(%s)\b(?!([^>]*?</h[1-6])|(([^<>]*?)>)|([^>]*?</a>))#i';
 	const REGEXP_PARSE = '#(?!((<h.*?)(<.*?)|(<a.*?)))\b(%s)\b(?!([^>]*?</h[1-6])|(([^<>]*?)>)|([^>]*?</a>)|(\shttp))#i';
-	
+	const global_options_key = "aLinks_global_options";
 	
 	/*
 	 * some static variables
@@ -20,6 +20,7 @@ class aLinks_keyphraseParser{
 	
 	static function init(){
 		add_filter('the_content', array(get_class(), 'parse_keyPhrase'));
+		register_activation_hook(aLinks_FILE, array(get_class(), 'activate_the_plugin'));
 	}
 	
 	static function parse_keyPhrase($content){
@@ -181,5 +182,18 @@ class aLinks_keyphraseParser{
 			'options' => $options,
 			'randomness' => $randomness
 		);
+	}
+	
+	
+	/*
+	 * activate the plugin
+	 * */
+	static function activate_the_plugin(){
+		$new_options = array(
+				'max_link_p_post' => 1,
+				'randomize' => "Y",				
+				'max_links' => "-1"
+		);
+			update_option(self::global_options_key, $new_options);
 	}
 }

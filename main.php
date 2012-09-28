@@ -11,6 +11,7 @@ Author URI: http://www.headzoo.com
 
 define("aLinks_FILE", __FILE__);
 define("aLinks_DIR", dirname(__FILE__));
+define("aLinks_URL", plugins_url('/', __FILE__));
 
 include aLinks_DIR . '/classes/class.custom-post-type.php';
 aLinks_CustomPostTypes::init();

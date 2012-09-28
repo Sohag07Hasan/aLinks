@@ -235,7 +235,10 @@ class aLinks_CustomPostTypes{
 		if(!empty($_FILES['alinks-FileUpload']['tmp_name'])){
 			self::parse_xml_file();
 		}		
-				
+
+		$xml_type_1 = aLinks_URL . 'sample_xml/type_1.xml';
+		$xml_type_2 = aLinks_URL . 'sample_xml/type_2.xml';
+		
 		include aLinks_DIR . '/includes/submenupage-import-export.php';
 	}
 	
@@ -371,19 +374,32 @@ class aLinks_CustomPostTypes{
 	 * parse xml file for alinks 
 	 * */
 	static function parse_xml_file(){
+		
+		if($_POST['alinks-xml-type'] == 1){
+			return self::parse_xml_type_1();
+		}
+
+		if($_POST['alinks-xml-type'] == 2){
+			return self::parse_xml_type_2();
+		}
+		
+	}
+	
+	
+	static function parse_xml_type_1(){
 		$file = $_FILES['alinks-FileUpload']['tmp_name'];
 		
 		$xml = @ simplexml_load_file($file);
 				
 		if(!$xml){
-			self::$log['error'][] = __("XML format is not valid. Please see the sample in plugins directory");
+			self::$log['error'][] = __("XML Type 1 format is not valid. Please see the sample in plugins directory");
 			return;
 		}
 		
 		$keyphrases = $xml->Keyphrases->Keyphrase;
 		
 		if(empty($keyphrases)){
-			self::$log['error'][] = __("XML format is not valid. Please see the sample in plugins directory");
+			self::$log['error'][] = __("KeyPhrases are empty");
 			return;
 		}
 		
@@ -413,8 +429,56 @@ class aLinks_CustomPostTypes{
 		
 		self::$log['updated'][] = __("total number of pharsed : $parsed and <br/> total number of skipped : $skipped");
 		
+	}
+	
+	
+	//parsing xml type 2
+	static function parse_xml_type_2(){
+		$file = $_FILES['alinks-FileUpload']['tmp_name'];
+		
+		$xml = @ simplexml_load_file($file);
+					
+		if(!$xml){
+			self::$log['error'][] = __("XML Type 2 format is not valid. Please see the sample in plugins directory");
+			return;
+		}
+		
+		$keyphrases = $xml->Keyphrase;		
+		
+		if(empty($keyphrases)){
+			self::$log['error'][] = __("Key Phrases are empty");
+			return;
+		}
+		
+		$parsed = 0;
+		$skipped = 0;
+		
+		foreach($keyphrases as $keyphrase){
+			$single_keyphrase = array();			
+						
+			foreach($keyphrase->attributes() as $k => $v){
+				$key = ($k == 'kw') ? 'phrase' : "url";
+				$single_keyphrase[$key] = (string) $v;
+			}
+			
+			$single_keyphrase['description'] = $single_keyphrase['phrase'];						
+			if(empty($single_keyphrase['phrase']) || empty($single_keyphrase['url'])){
+				$skipped ++ ;
+				continue;
+			}
+			
+			$post_id = self::create_post($single_keyphrase);
+			if($post_id){
+				$parsed ++ ;
+			}
+			
+			
+		}
+		
+		self::$log['updated'][] = __("total number of pharsed : $parsed and <br/> total number of skipped : $skipped");
 		
 	}
+	
 	
 	//creates post
 	static function create_post($data){
