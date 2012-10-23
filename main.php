@@ -1,7 +1,7 @@
 <?php 
 
 /**
-Plugin Name: aLinks
+Plugin Name: Natural Link Manager
 Plugin URI: http://alinks.headzoo.com
 Description: A WordPress plugin that automatically links keywords in your blog post.
 Author: Sohag

@@ -7,9 +7,9 @@ class aLinks_CustomPostTypes{
 	
 	//custom post type constant
 	const posttype = 'alink';
-	const menu = 'aLinks';
-	const name = 'aLinks';
-	const singular = 'aLink';
+	const menu = 'nLinks';
+	const name = 'nLinks';
+	const singular = 'nLink';
 	
 	
 	//metabox constant

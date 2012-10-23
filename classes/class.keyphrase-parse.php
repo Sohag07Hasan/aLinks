@@ -51,6 +51,8 @@ class aLinks_keyphraseParser{
 				$max_links_sitewise = 200;
 			}
 			
+			//var_dump($max_links);
+			//die();
 						
 			foreach($keyPhrases as $key => $Phrases){
 				$link_replaced = 0;
@@ -63,13 +65,21 @@ class aLinks_keyphraseParser{
 				$total_links = ($is_unlimited) ? 100 : $max_links;
 				
 				if($phrase_found){
+					
+					/*
+					var_dump($Phrases);
+					var_dump($key);
+					die();
+					*/
+					
 					self::set_options($Phrases[0]);					
 					foreach($Phrases as $pno => $phrase){
 						if(self::$total_parsed < $max_links_sitewise) :
-							if($link_replaced == $total_links) break;												
+							//if($link_replaced == $total_links) break;												
 							self::$keyPhrase = $phrase;
 							$link = self::get_associate_link();
-							$content = preg_replace($expression, $link, $content, 1);
+						//	$content = preg_replace($expression, $link, $content, 1);
+							$content = self::link_add_with_content($content, $link, $expression, $total_links);
 							$link_replaced ++;	
 							self::$total_parsed ++;	
 						endif;				
@@ -79,6 +89,32 @@ class aLinks_keyphraseParser{
 			}		
 		endif;		
 		return $content;
+	}
+	
+	
+	/*
+	 * main functionality goes here
+	 * */
+	static function link_add_with_content($content, $link, $regex, $total_links){
+		$new_content = preg_split($regex, $content);
+		
+		//var_dump($new_content);
+						
+		if(count($new_content) > 2){
+			$index = count($new_content) - 2;
+
+			foreach ($new_content as $key => $value){
+				$rand = rand(0, $index);
+			}
+			
+			$new_content[$rand] .= $link . $new_content[$rand+1];			
+			unset($new_content[$rand+1]);
+			return implode(self::$key, $new_content);
+			
+		}
+		else{
+			return preg_replace($expression, $link, $content, 1);
+		}
 	}
 	
 	
@@ -190,7 +226,7 @@ class aLinks_keyphraseParser{
 	 * */
 	static function activate_the_plugin(){
 		$new_options = array(
-				'max_link_p_post' => 1,
+				'max_link_p_post' => 2,
 				'randomize' => "Y",				
 				'max_links' => "-1"
 		);
